@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct pokemon{
+struct pokemon {
     int id;
     char name[50];
     char type1[20];
@@ -10,6 +10,9 @@ struct pokemon{
     int hp;
     int attack;
     int defense;
+    int speed;
+    int special_attack;
+    int special_defense;
 };
 
 void addpkmn();
@@ -22,133 +25,232 @@ void deletemode();
 void searchbyname();
 void editmode();
 void searchmode();
+void searchbytype();
+void searchbyid();
 
-int main(){
+int main() {
     int option;
-    do{
+    do {
         printf("-----POKEDEX-----\n");
         printf("1. Data Entry Mode\n");
         printf("2. Search Mode\n");
         printf("3. Edit Mode\n");
         printf("4. Delete Mode\n");
-        printf("6. Exit\n");
+        printf("5. Exit\n");
         printf("Enter your option: ");
         scanf("%d", &option);
-        getchar();
+        getchar(); // Consume leftover newline character
 
-        switch (option)
-        {
-        case 1:
-            dataentrymode();
-            break;
-
-        case 2:
-            searchmode();
-            break;
-
-        case 3:
-            editmode();
-            break;
-
-        case 4:
-            deletemode;
-            break;
-
-        case 5:
-            printf("Exiting.....\n");
-        
-        default:
-            printf("Invalid Option! Select correct option....\n");
+        switch (option) {
+            case 1:
+                dataentrymode();
+                break;
+            case 2:
+                searchmode();
+                break;
+            case 3:
+                editmode();
+                break;
+            case 4:
+                deletemode();
+                break;
+            case 5:
+                printf("Exiting.....\n");
+                break;
+            default:
+                printf("Invalid Option! Select correct option....\n");
         }
-        
-    }while(option != 5);
+    } while (option != 5);
     return 0;
 }
 
-void dataentrymode(){
+void dataentrymode() {
     char cont;
-    do
-    {
+    do {
         addpkmn();
         printf("Do you want to add more Pokemon? (y/n): ");
-        scanf("%c",&cont);
+        scanf(" %c", &cont); // Notice the space before %c to consume the leftover newline character
     } while (cont == 'y' || cont == 'Y');
-    
 }
 
-void addpkmn(){
+void addpkmn() {
     struct pokemon p;
-    FILE *fptr = fopen("pokedex.dat","ab");
+    FILE *fptr = fopen("pokedex.dat", "ab");
 
-    if (!fptr){
+    if (!fptr) {
         printf("Error opening file!!\n");
         return;
     }
 
     printf("Enter Pokemon ID: ");
-    scanf("%d",&p.id);
-
+    scanf("%d", &p.id);
+    getchar(); // Consume leftover newline
     printf("Enter Pokemon Name: ");
     fgets(p.name, sizeof(p.name), stdin);
-    p.name[strcspn(p.name,"\n")] = 0;
-
+    p.name[strcspn(p.name, "\n")] = 0; // Remove trailing newline
     printf("Enter Primary type: ");
-    fgets(p.type1,sizeof(p.type1),stdin);
-    p.type1[strcspn(p.type1,"\n")]=0;
-
-    printf("Enter Secondary type: ");
-    fgets(p.type2,sizeof(p.type2),stdin);
-    p.type2[strcspn(p.type2,"\n")]=0;
+    fgets(p.type1, sizeof(p.type1), stdin);
+    p.type1[strcspn(p.type1, "\n")] = 0;
+    printf("Enter Secondary type (or 'None'): ");
+    fgets(p.type2, sizeof(p.type2), stdin);
+    p.type2[strcspn(p.type2, "\n")] = 0;
     printf("Enter HP: ");
-    scanf("%d",&p.hp);
+    scanf("%d", &p.hp);
+    printf("Enter Attack: ");
+    scanf("%d", &p.attack);
     printf("Enter Defense: ");
-    scanf("%d",&p.defense);
+    scanf("%d", &p.defense);
+    printf("Enter Speed: ");
+    scanf("%d", &p.speed);
+    printf("Enter Special Attack: ");
+    scanf("%d", &p.special_attack);
+    printf("Enter Special Defense: ");
+    scanf("%d", &p.special_defense);
 
-    fwrite(&p,sizeof(p),1,fptr);
+    fwrite(&p, sizeof(p), 1, fptr);
     fclose(fptr);
-    printf("Pokemon added successfully!!\n");
 
-
+    printf("Pokemon added successfully!\n");
 }
 
-void searchmode(){
-    int option;
-    do{
-        printf("-----SEARCH MODE-----\n");
-        printf("1. Search by Name\n");
-        printf("2. Search by Type\n");
-        printf("3. Search by ID\n");
-        printf("4. Exit\n");
-        printf("Enter your option: ");
-        scanf("%d", &option);
-        getchar();
+void searchmode() {
+    int choice;
+    do {
+        printf("\n--- Search Mode ---\n");
+        printf("1. Search by ID\n");
+        printf("2. Search by Name\n");
+        printf("3. Search by Type\n");
+        printf("4. Display All Pokemon\n");
+        printf("5. Exit Search Mode\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        getchar(); // Consume leftover newline character
 
-        switch (option)
-        {
-        case 1:
-            searchbyname();
-            break;
-
-        case 2:
-            searchbytype();
-            break;
-
-        case 3:
-            searchbyid();
-            break;
-
-        case 4:
-            displaypkmn();
-            break;
-
-        case 5:
-            printf("Exiting.....\n");
-        
-        default:
-            printf("Invalid Option! Select correct option....\n");
+        switch (choice) {
+            case 1:
+                searchbyid();
+                break;
+            case 2:
+                searchbyname();
+                break;
+            case 3:
+                searchbytype();
+                break;
+            case 4:
+                displaypkmn();
+                break;
+            case 5:
+                printf("Exiting Search Mode...\n");
+                break;
+            default:
+                printf("Invalid choice! Please try again.\n");
         }
-        
-    }while(option != 4);
+    } while (choice != 5);
+}
+
+void searchbyid() {
+    struct pokemon p;
+    int id, found = 0;
+    FILE *fptr = fopen("pokedex.dat", "rb");
+
+    if (!fptr) {
+        printf("Error opening file!!\n");
+        return;
+    }
+
+    printf("Enter Pokemon ID to search: ");
+    scanf("%d", &id);
+
+    while (fread(&p, sizeof(p), 1, fptr)) {
+        if (p.id == id) {
+            printf("\nPokemon Found!\n");
+            printf("ID: %d\n", p.id);
+            printf("Name: %s\n", p.name);
+            printf("Type 1: %s\n", p.type1);
+            printf("Type 2: %s\n", strcmp(p.type2, "None") == 0 ? "N/A" : p.type2);
+            printf("HP: %d\n", p.hp);
+            printf("Attack: %d\n", p.attack);
+            printf("Defense: %d\n", p.defense);
+            printf("Speed: %d\n", p.speed);
+            printf("Special Attack: %d\n", p.special_attack);
+            printf("Special Defense: %d\n", p.special_defense);
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("Pokemon not found!!\n");
+    }
+
+    fclose(fptr);
+}
+
+void searchbytype() {
+    struct pokemon p;
+    char type[20];
+    int found = 0;
+    FILE *fptr = fopen("pokedex.dat", "rb");
+
+    if (!fptr) {
+        printf("Error opening file!!\n");
+        return;
+    }
+
+    printf("Enter Pokemon Type to search: ");
+    fgets(type, sizeof(type), stdin);
+    type[strcspn(type, "\n")] = 0; // Remove trailing newline
+
+    while (fread(&p, sizeof(p), 1, fptr)) {
+        if (strcasecmp(p.type1, type) == 0 || strcasecmp(p.type2, type) == 0) {
+            if (!found) {
+                printf("\nPokemon Found!\n");
+            }
+            printf("\nID: %d\n", p.id);
+            printf("Name: %s\n", p.name);
+            printf("Type 1: %s\n", p.type1);
+            printf("Type 2: %s\n", strcmp(p.type2, "None") == 0 ? "N/A" : p.type2);
+            printf("HP: %d\n", p.hp);
+            printf("Attack: %d\n", p.attack);
+            printf("Defense: %d\n", p.defense);
+            printf("Speed: %d\n", p.speed);
+            printf("Special Attack: %d\n", p.special_attack);
+            printf("Special Defense: %d\n", p.special_defense);
+            found = 1;
+        }
+    }
+
+    if (!found) {
+        printf("Pokemon not found!!\n");
+    }
+
+    fclose(fptr);
+}
+
+void displaypkmn() {
+    struct pokemon p;
+    FILE *fptr = fopen("pokedex.dat", "rb");
+
+    if (!fptr) {
+        printf("Error opening file!!\n");
+        return;
+    }
+
+    printf("\n--- All Pokemon ---\n");
+    while (fread(&p, sizeof(p), 1, fptr)) {
+        printf("\nID: %d\n", p.id);
+        printf("Name: %s\n", p.name);
+        printf("Type 1: %s\n", p.type1);
+        printf("Type 2: %s\n", strcmp(p.type2, "None") == 0 ? "N/A" : p.type2);
+        printf("HP: %d\n", p.hp);
+        printf("Attack: %d\n", p.attack);
+        printf("Defense: %d\n", p.defense);
+        printf("Speed: %d\n", p.speed);
+        printf("Special Attack: %d\n", p.special_attack);
+        printf("Special Defense: %d\n", p.special_defense);
+    }
+
+    fclose(fptr);
 }
 
 void searchpkmn(){
@@ -174,6 +276,9 @@ void searchpkmn(){
             printf("HP: %d\n",p.hp);
             printf("Attack: %d\n",p.attack);
             printf("Defense: %d\n",p.defense);
+            printf("Speed: %d\n",p.speed);
+            printf("Special Attack: %d\n",p.special_attack);
+            printf("Special Defense: %d\n",p.special_defense);
             found = 1;
             break;
         }
@@ -209,6 +314,9 @@ void searchbyname(){
             printf("HP: %d\n",p.hp);
             printf("Attack: %d\n",p.attack);
             printf("Defense: %d\n",p.defense);
+            printf("Speed: %d\n",p.speed);
+            printf("Special Attack: %d\n",p.special_attack);
+            printf("Special Defense: %d\n",p.special_defense);
             found = 1;
             break;
         }
@@ -241,7 +349,7 @@ void editmode(){
 
             printf("Enter new Pokemon Name: ");
             fgets(p.name, sizeof(p.name), stdin);
-            p.name[strcspn(p.name,"\n")] = 0;
+            p.name[strcspn(p.name,"\n")]=0;
 
             printf("Enter new Primary type: ");
             fgets(p.type1,sizeof(p.type1),stdin);
@@ -254,6 +362,12 @@ void editmode(){
             scanf("%d",&p.hp);
             printf("Enter new Defense: ");
             scanf("%d",&p.defense);
+            printf("Enter new Speed: ");
+            scanf("%d",&p.speed);
+            printf("Enter new Special Attack: ");
+            scanf("%d",&p.special_attack);
+            printf("Enter new Special Defense: ");
+            scanf("%d",&p.special_defense);
 
             fseek(fptr,-sizeof(p),SEEK_CUR);
             fwrite(&p,sizeof(p),1,fptr);
